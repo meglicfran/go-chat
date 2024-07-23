@@ -1,0 +1,42 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.chat_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 15px;
+}
+
+.message {
+    display: flex;
+    padding: 5px;
+    flex-direction: row;
+}
+.border{
+    margin: 5px;
+    display: flex;
+    padding: 5px;
+    flex-direction: row;
+    border: 1px solid black;
+    border-radius: 3px;
+}
+.user{
+    margin: 3px;
+    font-weight: bold;
+}
+
+.text{
+    margin:3px;
+}
+
+.time{
+    font-size: small;
+    display: flex;
+    justify-content: end;
+    align-items: end;
+}

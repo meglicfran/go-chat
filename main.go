@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
@@ -13,7 +15,10 @@ var options websocket.AcceptOptions
 var idCounter int = 0
 
 type Message struct {
-	Msg string
+	Typ       string
+	Msg       string
+	TimeStamp time.Time
+	UserId    int
 }
 
 type User struct {
@@ -30,6 +35,18 @@ func Broadcast(message []byte) {
 	}
 }
 
+func removeUser(userId int) {
+	var NewUsers []User
+	for _, user := range Users {
+		if user.Id != userId {
+			NewUsers = append(NewUsers, user)
+		} else {
+			go Broadcast([]byte(fmt.Sprint("User: ", user, " Left.")))
+		}
+	}
+	Users = NewUsers
+}
+
 func wsFunc(w http.ResponseWriter, r *http.Request) {
 	options.InsecureSkipVerify = true
 	c, err := websocket.Accept(w, r, &options)
@@ -42,26 +59,40 @@ func wsFunc(w http.ResponseWriter, r *http.Request) {
 	idCounter++
 	thisUser := User{Ws: c, Cntx: &ctx, Id: idCounter}
 	Users = append(Users, thisUser)
-	c.Write(ctx, websocket.MessageText, []byte(fmt.Sprint("Hello user:", thisUser)))
 	fmt.Printf("Users: %+v\n", Users)
+
+	Hello := Message{Typ: "Hello", Msg: fmt.Sprint("Hello user:", thisUser.Id), TimeStamp: time.Now()}
+	jsonHello, err := json.Marshal(Hello)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	c.Write(ctx, websocket.MessageText, jsonHello)
 
 	for {
 		var msg Message
 		err := wsjson.Read(ctx, c, &msg)
 		if err != nil {
 			fmt.Println(err)
+			removeUser(thisUser.Id)
 			return
 		}
+		msg.TimeStamp = time.Now()
+		msg.UserId = thisUser.Id
 		fmt.Println("received: ", msg, "From user:", thisUser)
-		go Broadcast([]byte(fmt.Sprint("Received msg: ", string(msg.Msg), " From user: ", thisUser)))
-		//c.Write(ctx, websocket.MessageText, []byte(fmt.Sprint("Received msg: ", string(msg.Msg), " From user: ", thisUser)))
+		jsonMsg, err := json.Marshal(msg)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		go Broadcast(jsonMsg)
 	}
 }
 
 func main() {
-	fmt.Println("Hello from server.")
-	//fs := http.FileServer(http.Dir("./"))
-	//http.Handle("/", fs)
+	t := time.Now()
+	fmt.Println("Hello from server.", t)
+
 	http.HandleFunc("/", wsFunc)
 	http.ListenAndServe(":8080", nil)
 }
