@@ -17,7 +17,7 @@ var idCounter int = 0
 type Message struct {
 	Typ       string
 	Msg       string
-	TimeStamp time.Time
+	TimeStamp string
 	UserId    int
 }
 
@@ -61,7 +61,9 @@ func wsFunc(w http.ResponseWriter, r *http.Request) {
 	Users = append(Users, thisUser)
 	fmt.Printf("Users: %+v\n", Users)
 
-	Hello := Message{Typ: "Hello", Msg: fmt.Sprint("Hello user:", thisUser.Id), TimeStamp: time.Now()}
+	curTime := time.Now()
+	timeStamp := fmt.Sprintf("%d:%d:%d", curTime.Hour(), curTime.Minute(), curTime.Second())
+	Hello := Message{Typ: "Hello", Msg: fmt.Sprint("Hello user:", thisUser.Id), TimeStamp: timeStamp}
 	jsonHello, err := json.Marshal(Hello)
 	if err != nil {
 		fmt.Println(err)
@@ -77,7 +79,7 @@ func wsFunc(w http.ResponseWriter, r *http.Request) {
 			removeUser(thisUser.Id)
 			return
 		}
-		msg.TimeStamp = time.Now()
+		msg.TimeStamp = timeStamp
 		msg.UserId = thisUser.Id
 		fmt.Println("received: ", msg, "From user:", thisUser)
 		jsonMsg, err := json.Marshal(msg)
@@ -91,7 +93,7 @@ func wsFunc(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	t := time.Now()
-	fmt.Println("Hello from server.", t)
+	fmt.Println("Hello from server.", t.Format(time.RFC3339))
 
 	http.HandleFunc("/", wsFunc)
 	http.ListenAndServe(":8080", nil)

@@ -1,42 +1,103 @@
 * {
     box-sizing: border-box;
     margin: 0;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: Arial, sans-serif;
 }
 
-.chat_container {
+body{
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 15px;
+    background-color: #f5f5f5;
+    
+    color: #242424;
+}
+
+.title_container {
+    padding: 15px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.container {
+    width: 500px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat_container {
+    padding: 15px;
+    width: inherit;
+    display: flex;
+    max-height: 800px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: auto;
+    border-bottom: 1px solid #ddd;
 }
 
 .message {
     display: flex;
     padding: 5px;
-    flex-direction: row;
-}
-.border{
-    margin: 5px;
-    display: flex;
-    padding: 5px;
-    flex-direction: row;
-    border: 1px solid black;
-    border-radius: 3px;
+    flex-direction: column;
+    overflow-anchor: auto;
 }
 .user{
-    margin: 3px;
-    font-weight: bold;
+    color: #242424;
+    font-size: 9pt;
 }
-
+.border{
+    color: white;
+    background-color: #007bff;
+    margin: 5px;
+    display: flex;
+    padding: 10px;
+    flex-direction: row;
+    border-radius: 2px 10px 10px 10px;
+    text-wrap: wrap;
+}
 .text{
-    margin:3px;
 }
 
 .time{
-    font-size: small;
+    color: #242424;
+    font-size: 9pt;
     display: flex;
     justify-content: end;
     align-items: end;
+}
+
+.input_container
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding: 10px;
+    position: sticky;
+    bottom: 0;
+}
+
+#messageInput {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
 }
