@@ -79,6 +79,8 @@ func wsFunc(w http.ResponseWriter, r *http.Request) {
 			removeUser(thisUser.Id)
 			return
 		}
+		curTime = time.Now()
+		timeStamp = fmt.Sprintf("%d:%d:%d", curTime.Hour(), curTime.Minute(), curTime.Second())
 		msg.TimeStamp = timeStamp
 		msg.UserId = thisUser.Id
 		fmt.Println("received: ", msg, "From user:", thisUser)
