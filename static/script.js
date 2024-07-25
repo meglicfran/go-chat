@@ -1,7 +1,7 @@
 console.log("Hello from client");
 
 var chat_container = document.getElementById("chat_container")
-const ws = new WebSocket("ws://https://go-chat-production-30cb.up.railway.app/ws");
+const ws = new WebSocket("wss://go-chat-production-30cb.up.railway.app/ws");
 var myId = ""
 
 ws.addEventListener("open", (event) => {
