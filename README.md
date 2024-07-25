@@ -16,4 +16,4 @@ In the directory containing `main.go` run
 
     go run .
 
-Open `localhost:8080`[localhost:8080] in your browser
+Open [`localhost:8080`](http://localhost:8080) in your browser
