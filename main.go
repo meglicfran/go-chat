@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"nhooyr.io/websocket"
@@ -132,5 +133,10 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/ws", websocketHandler)
 
-	http.ListenAndServe(SERVER_PORT, nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = SERVER_PORT
+	}
+
+	http.ListenAndServe("0.0.0.0:"+port, nil)
 }
