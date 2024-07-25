@@ -39,9 +39,23 @@ body{
     max-height: 700px;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     overflow-x: auto;
     border-bottom: 1px solid #ddd;
+}
+
+.left {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.right {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
 .message {
@@ -50,10 +64,15 @@ body{
     flex-direction: column;
     overflow-anchor: auto;
 }
+
 .user{
+    display: flex;
+    justify-content: start;
+    align-items: start;
     color: #242424;
     font-size: 9pt;
 }
+
 .border{
     color: white;
     background-color: #007bff;
@@ -64,8 +83,6 @@ body{
     border-radius: 2px 10px 10px 10px;
     text-wrap: wrap;
 }
-.text{
-}
 
 .time{
     color: #242424;
@@ -74,6 +91,22 @@ body{
     justify-content: end;
     align-items: end;
 }
+
+.right .user{
+    display: flex;
+    justify-content: end;
+    align-items: end;
+}
+
+.right .border {
+    border-radius: 10px 2px 10px 10px;
+}
+
+.right .time {
+    display: flex;
+    justify-content: start;
+    align-items: start;
+} 
 
 .input_container
 {

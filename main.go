@@ -11,92 +11,126 @@ import (
 	"nhooyr.io/websocket/wsjson"
 )
 
-var options websocket.AcceptOptions
+const SERVER_PORT = ":8080"
+
 var idCounter int = 0
 
-type Message struct {
+type message struct {
 	Typ       string
 	Msg       string
 	TimeStamp string
 	UserId    int
 }
 
-type User struct {
+type user struct {
 	Id   int
 	Ws   *websocket.Conn
 	Cntx *context.Context
 }
 
-var Users []User
+var users []user
 
-func Broadcast(message []byte) {
-	for _, user := range Users {
+// Create a "HH:MM:SS" string out of time.Time
+func makeTimeStampString(t time.Time) string {
+	return fmt.Sprintf("%d:%d:%d", t.Hour(), t.Minute(), t.Second())
+}
+
+// Send a hello message to the user
+func sayHello(user user) error {
+	timeStamp := makeTimeStampString(time.Now())
+	Hello := message{
+		Typ:       "Hello",
+		Msg:       fmt.Sprint(user.Id),
+		TimeStamp: timeStamp,
+	}
+	jsonHello, err := json.Marshal(Hello)
+	if err != nil {
+		return err
+	}
+	err = user.Ws.Write(*user.Cntx, websocket.MessageText, jsonHello)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Broadcast the message byte slice to all users in Users
+func broadcast(message []byte) {
+	for _, user := range users {
 		user.Ws.Write(*user.Cntx, websocket.MessageText, message)
 	}
 }
 
+// Removes the user with userId form users
 func removeUser(userId int) {
-	var NewUsers []User
-	for _, user := range Users {
+	var NewUsers []user
+	for _, user := range users {
 		if user.Id != userId {
 			NewUsers = append(NewUsers, user)
 		} else {
-			go Broadcast([]byte(fmt.Sprint("User: ", user, " Left.")))
+			go broadcast([]byte(fmt.Sprint("User: ", user, " Left.")))
 		}
 	}
-	Users = NewUsers
+	users = NewUsers
 }
 
-func wsFunc(w http.ResponseWriter, r *http.Request) {
-	options.InsecureSkipVerify = true
+// Accepts websocekt handshake, sends a hello message to the user,
+// listens for and broadcasts incomming messages.
+func websocketHandler(w http.ResponseWriter, r *http.Request) {
+
+	//Acceping websocket handshake
+	options := websocket.AcceptOptions{InsecureSkipVerify: true}
 	c, err := websocket.Accept(w, r, &options)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	ctx := r.Context()
+	//Creating a new user
 	idCounter++
-	thisUser := User{Ws: c, Cntx: &ctx, Id: idCounter}
-	Users = append(Users, thisUser)
-	fmt.Printf("Users: %+v\n", Users)
+	ctx := r.Context()
+	thisUser := user{Ws: c, Cntx: &ctx, Id: idCounter}
+	users = append(users, thisUser)
 
-	curTime := time.Now()
-	timeStamp := fmt.Sprintf("%d:%d:%d", curTime.Hour(), curTime.Minute(), curTime.Second())
-	Hello := Message{Typ: "Hello", Msg: fmt.Sprint("Hello user:", thisUser.Id), TimeStamp: timeStamp}
-	jsonHello, err := json.Marshal(Hello)
+	//Sending hello message to the user
+	err = sayHello(thisUser)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	c.Write(ctx, websocket.MessageText, jsonHello)
 
+	//While loop listening to incoming messages
 	for {
-		var msg Message
+		var msg message
 		err := wsjson.Read(ctx, c, &msg)
 		if err != nil {
 			fmt.Println(err)
 			removeUser(thisUser.Id)
 			return
 		}
-		curTime = time.Now()
-		timeStamp = fmt.Sprintf("%d:%d:%d", curTime.Hour(), curTime.Minute(), curTime.Second())
-		msg.TimeStamp = timeStamp
+
+		//Do not broadcast hello messages
+		if msg.Typ == "Hello" {
+			continue
+		}
+
+		//Create Message object and broadcast received message
+		msg.TimeStamp = makeTimeStampString(time.Now())
 		msg.UserId = thisUser.Id
-		fmt.Println("received: ", msg, "From user:", thisUser)
 		jsonMsg, err := json.Marshal(msg)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		go Broadcast(jsonMsg)
+		go broadcast(jsonMsg)
 	}
 }
 
 func main() {
-	t := time.Now()
-	fmt.Println("Hello from server.", t.Format(time.RFC3339))
+	fmt.Println(makeTimeStampString(time.Now()), "Server started on port", SERVER_PORT)
 
-	http.HandleFunc("/", wsFunc)
-	http.ListenAndServe(":8080", nil)
+	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.HandleFunc("/ws", websocketHandler)
+
+	http.ListenAndServe(SERVER_PORT, nil)
 }
